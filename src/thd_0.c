@@ -1,10 +1,7 @@
 // Parameters
 #include "params.h"
 
-#include <zephyr/sys/printk.h>
-#include <zephyr/drivers/uart.h>
-
-#define SLEEP_TIME_MS 500
+#define SLEEP_TIME_MS 1000
 
 // Define stack area used by workqueue thread
 extern K_THREAD_STACK_DEFINE(my_stack_area, WORQ_THREAD_STACK_SIZE);
@@ -48,9 +45,12 @@ void thread0(void)
     static uint8_t tx_buf[] = "Hello, I am thread0\n\r";
     int ret;
     /* Send the data over UART */
+  repeat_send:
     ret = uart_tx(uart, tx_buf, sizeof(tx_buf), SYS_FOREVER_US);
     if (ret)
     {
+      if (ret == -EBUSY)
+        goto repeat_send;
       printk("UART TX failed thd0: %d\n\r", ret);
     }
     time_stamp = k_uptime_get();
