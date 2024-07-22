@@ -1,18 +1,19 @@
 /**
  * @file main.c
  * @author Andres C. Vargas R. (camilo.vargas@technaid.com gh: @andrescvargasr)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-07-22
- * 
- * 
+ *
+ *
  */
 
 #include <stdlib.h>		   // EXIT_[SUCCESS, FAILURE]
 #include <zephyr/kernel.h> // k_msleep()
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-#include <zephyr/sys/printk.h>
+#include <zephyr/sys/printk.h>	// printk()
+#include <zephyr/logging/log.h> // LOG_[ERR, WRN, INF, DBG]
 // GPIO
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h> // PWM_DT_SPEC_GET(), pwm_is_ready_dt()
@@ -20,6 +21,39 @@
 #include <zephyr/drivers/uart.h>
 // Two Wire Interface (I2C)
 #include <zephyr/drivers/i2c.h>
+
+#include "Params.h" /* DACParams.h and I2CParams.h are here */
+
+#ifndef SOFTWARE_VERSION /* 1st definition at Params, 2nd here */
+#define SOFTWARE_VERSION "v0.1.0"
+#define SOFTWARE_VERSION_SEMVER 0x0010U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
+#endif
+
+/**
+ * @brief Register code with logger intead of printk()
+ * | LEVEL | SEVERITY	| MACRO |
+ * | --- | --- | --- |
+ * | 1 (most severe) | Error | LOG_LEVEL_ERR |
+ * | 2 | Warning | LOG_LEVEL_WRN |
+ * | 3 | Info | LOG_LEVEL_INF |
+ * | 4(least severe) | Debug | LOG_LEVEL_DBG |
+ *
+ * Description:
+ * - Error: Severe error conditions
+ * - Warning: Conditions that should be taken care of
+ * - Info: Informational messages that require no action
+ * - Debug: Debugging messages
+ *
+ */
+#if LOG_EN_LEVEL == 4
+LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
+#elif LOG_EN_LEVEL == 3
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+#elif LOG_EN_LEVEL == 2
+LOG_MODULE_REGISTER(main, LOG_LEVEL_WRN);
+#elif LOG_EN_LEVEL == 1
+LOG_MODULE_REGISTER(main, LOG_LEVEL_ERR);
+#endif
 
 // UART
 #define RECEIVE_BUFF_SIZE 10
@@ -45,7 +79,7 @@ static const struct i2c_dt_spec dev_i2c = I2C_DT_SPEC_GET(I2C1_NODE);
 #define SLEEP_MSEC 25U
 
 // UART: Define buffers
-static uint8_t tx_buf[] = {"Technaid SL Connect DMA\n\r"};
+static uint8_t tx_buf[] = {"<uart_async>: Technaid SL Connect DMA\n\r"};
 static uint8_t rx_buf[RECEIVE_BUFF_SIZE] = {0};
 
 // UART: Define the callback function for UART
@@ -53,6 +87,9 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 {
 	switch (evt->type)
 	{
+	case UART_TX_DONE:
+		/* add code here */
+		break;
 	case UART_RX_RDY:
 		if (evt->data.rx.len == 1)
 		{
@@ -69,6 +106,9 @@ static void uart_cb(const struct device *dev, struct uart_event *evt, void *user
 	}
 }
 
+/******************************************************************************/
+/*   MAIN                                                                     */
+/******************************************************************************/
 int main(void)
 {
 	uint32_t pulse_width = 0U;
@@ -76,7 +116,7 @@ int main(void)
 	uint8_t dir = 1U;
 	int ret;
 
-	printk("Techstim-fw\n");
+	LOG_INF("Zephyr Template");
 
 	if (!device_is_ready(led.port))
 	{
@@ -85,21 +125,21 @@ int main(void)
 
 	if (!pwm_is_ready_dt(&pwm_led0))
 	{
-		printk("Error: PWM device %s is not ready\n",
-			   pwm_led0.dev->name);
+		LOG_ERR("PWM device %s is not ready",
+				pwm_led0.dev->name);
 		return 0;
 	}
 
 	if (!device_is_ready(uart))
 	{
-		printk("%s is not ready!", uart->name);
+		LOG_ERR("%s is not ready!", uart->name);
 		return EXIT_FAILURE;
 	}
 
 	// I2C ready?
 	if (!device_is_ready(dev_i2c.bus))
 	{
-		printk("I2C bus %s is not ready!", dev_i2c.bus->name);
+		LOG_ERR("I2C bus %s is not ready!", dev_i2c.bus->name);
 		return EXIT_FAILURE;
 	}
 
@@ -107,6 +147,7 @@ int main(void)
 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 	if (ret < 0)
 	{
+		LOG_ERR("%s is not ready: %d", led.port->name, ret);
 		return EXIT_FAILURE;
 	}
 
@@ -120,7 +161,7 @@ int main(void)
 	ret = uart_tx(uart, tx_buf, sizeof(tx_buf), SYS_FOREVER_MS);
 	if (ret)
 	{
-		printk("Hello: %d\n\r", ret);
+		LOG_ERR("%s failed to send msg: %d", uart->name, ret);
 		return EXIT_FAILURE;
 	}
 
@@ -133,9 +174,7 @@ int main(void)
 	// Write on the I2C bus
 	uint8_t reg_dir = 0x19;			 // Address 19h: DAC-0-DATA
 	uint8_t value[2] = {0x12, 0x34}; // [0]: msb; [1]: lsb
-	printk("I2C write:\t\t");
-	printk("0x%02x\t", value[0]);
-	printk("0x%02x\n\r", value[1]);
+	LOG_DBG("I2C wr:\t\t\t0x%02x\t0x%02x", value[0], value[1]);
 	// printk("I2C write: 0x%04x\n\r", htons((uint16_t)*value & 0xFFF0));
 	// ret = i2c_write_dt(&dev_i2c, config, sizeof(config));
 	ret = i2c_burst_write_dt(&dev_i2c, reg_dir, value, sizeof(value));
@@ -150,24 +189,21 @@ int main(void)
 	{
 		printk("Failed to read from I2C device address %x at Reg. %x \n\r", dev_i2c.addr, reg_dir);
 	}
-	printk("I2C read (recv):\t");
-	printk("0x%02x\t", data[0]);
-	printk("0x%02x\n\r", data[1]);
+	LOG_DBG("I2C rd (recv):\t\t0x%02x\t0x%02x", data[0], data[1]);
 
 	data[0] = 0, data[1] = 0;
 	// Do a burst read of 6 bytes as each color channel is 2 bytes
 	ret = i2c_burst_read_dt(&dev_i2c, reg_dir, data, sizeof(data));
-	printk("I2C read burst (recv):\t");
-	printk("0x%02x\t", data[0]);
-	printk("0x%02x\n\r", data[1]);
+
+	LOG_DBG("I2C rd burst (recv):\t0x%02x\t0x%02x", data[0], data[1]);
 
 	while (1)
 	{
 		ret = pwm_set_pulse_dt(&pwm_led0, pulse_width);
 		if (ret)
 		{
-			printk("Error %d: failed to set pulse width\n", ret);
-			return 0;
+			LOG_ERR("Error %d: failed to set pulse width", ret);
+			return EXIT_FAILURE;
 		}
 		// printk("Using pulse width %d%%\n", 100 * pulse_width / pwm_led0.period);
 
@@ -195,5 +231,5 @@ int main(void)
 
 		k_sleep(K_MSEC(SLEEP_MSEC));
 	}
-	return 0;
+	return EXIT_FAILURE;
 }
