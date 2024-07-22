@@ -6,4 +6,9 @@ set(DTC_OVERLAY_FILE "boards/stm32_min_dev_black.overlay")
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(zephyr-template)
 
-target_sources(app PRIVATE ../src/main.c)
+# target_sources(app PRIVATE ../src/main.c)
+# target_sources_ifdef(CONFIG_I2C app PRIVATE ../src/I2CParams.c)
+
+# To add all the files at the same time
+FILE(GLOB app_sources ../src/*.c)
+target_sources(app PRIVATE ${app_sources})
