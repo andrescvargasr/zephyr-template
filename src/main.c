@@ -8,24 +8,11 @@
  *
  */
 
-#include <stdlib.h>		   // EXIT_[SUCCESS, FAILURE]
-#include <zephyr/kernel.h> // k_msleep()
-#include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-#include <zephyr/sys/printk.h>	// printk()
-#include <zephyr/logging/log.h> // LOG_[ERR, WRN, INF, DBG]
-// GPIO
-#include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/pwm.h> // PWM_DT_SPEC_GET(), pwm_is_ready_dt()
-// Serial Communication (UART)
-#include <zephyr/drivers/uart.h>
-// Two Wire Interface (I2C)
-#include <zephyr/drivers/i2c.h>
-
-#include "Params.h" /* DACParams.h and I2CParams.h are here */
+// Parameters
+#include "params.h" /* DACParams.h and I2CParams.h are here */
 
 #ifndef SOFTWARE_VERSION /* 1st definition at Params, 2nd here */
-#define SOFTWARE_VERSION "v0.1.0"
+#define SOFTWARE_VERSION "v0.2.0"
 #define SOFTWARE_VERSION_SEMVER 0x0010U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
 #endif
 
@@ -67,8 +54,9 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct pwm_dt_spec pwm_led0 = PWM_DT_SPEC_GET(PWM_LED0_NODE);
 
 // UART_NODE is the devicetree node identifier for the node with alias "usart2".
+// uart device is used in other files, so it is defined as a global variable.
 #define UART_NODE DT_ALIAS(uart0)
-static const struct device *uart = DEVICE_DT_GET(UART_NODE);
+const struct device *uart = DEVICE_DT_GET(UART_NODE);
 
 // I2C_NODE is the devicetree node identifier for the node with alias "DAC63204".
 #define I2C1_NODE DT_NODELABEL(dac63204)
