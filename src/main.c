@@ -12,8 +12,8 @@
 #include "params.h" /* DACParams.h and I2CParams.h are here */
 
 #ifndef SOFTWARE_VERSION /* 1st definition at Params, 2nd here */
-#define SOFTWARE_VERSION "v0.2.0"
-#define SOFTWARE_VERSION_SEMVER 0x0010U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
+#define SOFTWARE_VERSION "v0.2.1"
+#define SOFTWARE_VERSION_SEMVER 0x0021U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
 #endif
 
 /**
