@@ -1,5 +1,7 @@
 // Parameters
 #include "params.h"
+// Random number generator
+#include <zephyr/random/random.h>
 
 #define SLEEP_TIME_MS 1000
 
@@ -58,11 +60,6 @@ void thread0(void)
     // emulate_work();
     delta_time = k_uptime_delta(&time_stamp);
 
-    printk("thread0 yielding this round in %lld ms\n", delta_time);
-    /* STEP 6 - Make the thread yield */
-    // k_yield();
-    /* STEP 10 - Put the thread to sleep */
-    k_msleep(SLEEP_TIME_MS);
-    /* Remember to comment out the line from STEP 6 */
+    k_msleep(300 + sys_rand32_get() % 10);
   }
 }

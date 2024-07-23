@@ -3,6 +3,9 @@
 
 #include <zephyr/logging/log.h> // LOG_[ERR, WRN, INF, DBG]
 
+// Random number generator
+#include <zephyr/random/random.h> // sys_rand32_get()
+
 #define SLEEP_TIME_MS 1000
 
 LOG_MODULE_REGISTER(thd_1, LOG_LEVEL_DBG);
@@ -40,12 +43,10 @@ void thread1(void)
     emulate_work();
     delta_time = k_uptime_delta(&time_stamp);
 
-    LOG_INF("thread1 yielding this round in %lld ms\n", delta_time);
-    /* STEP 8 - Make the thread yield */
-    // k_yield();
-    /* STEP 10 - Put the thread to sleep */
-    k_msleep(SLEEP_TIME_MS);
-    // k_sleep(K_MSEC(SLEEP_TIME_MS));
-    /* Remember to comment out the line from STEP 8 */
+
+    // Release access to the resource
+    release_access();
+    // Assume the resource instance access is released at this point
+    k_msleep(500 + sys_rand32_get() % 100);
   }
 }
