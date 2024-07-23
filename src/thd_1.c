@@ -1,6 +1,7 @@
 // Parameters
 #include "params.h"
 
+// Logging
 #include <zephyr/logging/log.h> // LOG_[ERR, WRN, INF, DBG]
 
 // Random number generator
@@ -8,13 +9,25 @@
 
 #define SLEEP_TIME_MS 1000
 
+// Register the module in the logger
 LOG_MODULE_REGISTER(thd_1, LOG_LEVEL_DBG);
-// LOG_MODULE_DECLARE(thd_2, LOG_LEVEL_DBG);
+
+// Call a semaphore extern variable
+extern struct k_sem instance_monitor_sem;
 
 static inline void emulate_work()
 {
   for (volatile int count_out = 0; count_out < 150000; count_out++)
     ;
+}
+
+// Function for releasing access of resource
+void release_access(void)
+{
+  LOG_INF("Resource given");
+
+  /* STEP 10.2 - Give semaphore after finishing access to resource */
+  k_sem_give(&instance_monitor_sem);
 }
 
 void thread1(void)
@@ -33,16 +46,19 @@ void thread1(void)
     ret = uart_tx(uart, tx_buf, sizeof(tx_buf), SYS_FOREVER_US);
     if (ret)
     {
-      if (ret == -EBUSY) {
+      if (ret == -EBUSY)
+      {
+        k_msleep(10);
         goto repeat_send;
       }
-      LOG_ERR("UART TX failed thd1: %d\n\r", ret);
+      LOG_ERR("UART TX failed thd1: %d", ret);
     }
 
     time_stamp = k_uptime_get();
     emulate_work();
     delta_time = k_uptime_delta(&time_stamp);
 
+    LOG_INF("thread1 yielding this round in %lld ms", delta_time);
 
     // Release access to the resource
     release_access();

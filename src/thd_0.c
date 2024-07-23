@@ -1,9 +1,19 @@
 // Parameters
 #include "params.h"
+
+// Logging
+#include <zephyr/logging/log.h> // LOG_[ERR, WRN, INF, DBG]
+
 // Random number generator
 #include <zephyr/random/random.h>
 
 #define SLEEP_TIME_MS 1000
+
+// Register the module in the logger
+LOG_MODULE_REGISTER(thd_0, LOG_LEVEL_DBG);
+
+// Call a semaphore extern variable
+extern struct k_sem instance_monitor_sem;
 
 // Define stack area used by workqueue thread
 extern K_THREAD_STACK_DEFINE(my_stack_area, WORQ_THREAD_STACK_SIZE);
@@ -30,8 +40,16 @@ void offload_function(struct k_work *work_term)
   emulate_work();
 }
 
+// Function for getting access of resource
+void get_access(void)
+{
+  k_sem_take(&instance_monitor_sem, K_FOREVER);
+  LOG_INF("Resource taken");
+}
+
 void thread0(void)
 {
+  LOG_INF("Thread0 started");
   uint64_t time_stamp;
   int64_t delta_time;
 
@@ -53,13 +71,16 @@ void thread0(void)
     {
       if (ret == -EBUSY)
         goto repeat_send;
-      printk("UART TX failed thd0: %d\n\r", ret);
+      LOG_ERR("UART TX failed thd0: %d", ret);
     }
     time_stamp = k_uptime_get();
     k_work_submit_to_queue(&offload_work_q, &my_work.work);
     // emulate_work();
     delta_time = k_uptime_delta(&time_stamp);
 
+    LOG_INF("thread0 yielding this round in %lld ms", delta_time);
+
+    get_access();
     k_msleep(300 + sys_rand32_get() % 10);
   }
 }

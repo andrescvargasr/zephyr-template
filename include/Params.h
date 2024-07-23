@@ -1,5 +1,5 @@
 /**
- * @file Params.h
+ * @file params.h
  * @author Andres C. Vargas R. (camilo.vargas@technaid.com gh: @andrescvargasr)
  * @brief 
  * @version 0.1
@@ -29,7 +29,7 @@
 #define SOFTWARE_VERSION_SEMVER 0x0021U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
 
 #define THD_STACKSIZE 512 // Should always be a power of two.
-#define THREAD0_PRIORITY 2 
+#define THREAD0_PRIORITY 2
 #define THREAD1_PRIORITY 3
 #define WORQ_THREAD_STACK_SIZE  512
 #define WORKQ_PRIORITY   4

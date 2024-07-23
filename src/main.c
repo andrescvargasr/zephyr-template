@@ -42,6 +42,12 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_WRN);
 LOG_MODULE_REGISTER(main, LOG_LEVEL_ERR);
 #endif
 
+// Define sempahore
+K_SEM_DEFINE(instance_monitor_sem, 10, 10);
+
+// Define mutex
+K_MUTEX_DEFINE(instance_monitor_mutex);
+
 // UART
 #define RECEIVE_BUFF_SIZE 10
 #define RECEIVE_TIMEOUT 100
