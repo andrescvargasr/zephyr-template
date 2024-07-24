@@ -65,8 +65,8 @@ static const struct pwm_dt_spec pwm_led0 = PWM_DT_SPEC_GET(PWM_LED0_NODE);
 const struct device *uart = DEVICE_DT_GET(UART_NODE);
 
 // I2C_NODE is the devicetree node identifier for the node with alias "DAC63204".
-#define I2C1_NODE DT_NODELABEL(dac63204)
-static const struct i2c_dt_spec dev_i2c = I2C_DT_SPEC_GET(I2C1_NODE);
+// #define I2C1_NODE DT_NODELABEL(dac63204)
+// static const struct i2c_dt_spec dev_i2c = I2C_DT_SPEC_GET(I2C1_NODE);
 
 // PWM
 #define NUM_STEPS 50U
@@ -131,12 +131,12 @@ int main(void)
 		return EXIT_FAILURE;
 	}
 
-	// I2C ready?
-	if (!device_is_ready(dev_i2c.bus))
-	{
-		LOG_ERR("I2C bus %s is not ready!", dev_i2c.bus->name);
-		return EXIT_FAILURE;
-	}
+	// // I2C ready?
+	// if (!device_is_ready(dev_i2c.bus))
+	// {
+	// 	LOG_ERR("I2C bus %s is not ready!", dev_i2c.bus->name);
+	// 	return EXIT_FAILURE;
+	// }
 
 	// CONFIGURE
 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
@@ -166,31 +166,31 @@ int main(void)
 		return EXIT_FAILURE;
 	}
 
-	// Write on the I2C bus
-	uint8_t reg_dir = 0x19;			 // Address 19h: DAC-0-DATA
-	uint8_t value[2] = {0x12, 0x34}; // [0]: msb; [1]: lsb
-	LOG_DBG("I2C wr:\t\t\t0x%02x\t0x%02x", value[0], value[1]);
-	// printk("I2C write: 0x%04x\n\r", htons((uint16_t)*value & 0xFFF0));
-	// ret = i2c_write_dt(&dev_i2c, config, sizeof(config));
-	ret = i2c_burst_write_dt(&dev_i2c, reg_dir, value, sizeof(value));
-	if (ret != 0)
-	{
-		printk("Failed to write to I2C device address %x at reg. %x \n\r", dev_i2c.addr, reg_dir);
-	}
-	// Read on the I2C bus
-	uint8_t data[2]; // [0]: msb; [1]: lsb
-	ret = i2c_burst_read_dt(&dev_i2c, reg_dir, data, sizeof(data));
-	if (ret != 0)
-	{
-		printk("Failed to read from I2C device address %x at Reg. %x \n\r", dev_i2c.addr, reg_dir);
-	}
-	LOG_DBG("I2C rd (recv):\t\t0x%02x\t0x%02x", data[0], data[1]);
+	// // Write on the I2C bus
+	// uint8_t reg_dir = 0x19;			 // Address 19h: DAC-0-DATA
+	// uint8_t value[2] = {0x12, 0x34}; // [0]: msb; [1]: lsb
+	// LOG_DBG("I2C wr:\t\t\t0x%02x\t0x%02x", value[0], value[1]);
+	// // printk("I2C write: 0x%04x\n\r", htons((uint16_t)*value & 0xFFF0));
+	// // ret = i2c_write_dt(&dev_i2c, config, sizeof(config));
+	// ret = i2c_burst_write_dt(&dev_i2c, reg_dir, value, sizeof(value));
+	// if (ret != 0)
+	// {
+	// 	printk("Failed to write to I2C device address %x at reg. %x \n\r", dev_i2c.addr, reg_dir);
+	// }
+	// // Read on the I2C bus
+	// uint8_t data[2]; // [0]: msb; [1]: lsb
+	// ret = i2c_burst_read_dt(&dev_i2c, reg_dir, data, sizeof(data));
+	// if (ret != 0)
+	// {
+	// 	printk("Failed to read from I2C device address %x at Reg. %x \n\r", dev_i2c.addr, reg_dir);
+	// }
+	// LOG_DBG("I2C rd (recv):\t\t0x%02x\t0x%02x", data[0], data[1]);
 
-	data[0] = 0, data[1] = 0;
-	// Do a burst read of 6 bytes as each color channel is 2 bytes
-	ret = i2c_burst_read_dt(&dev_i2c, reg_dir, data, sizeof(data));
+	// data[0] = 0, data[1] = 0;
+	// // Do a burst read of 6 bytes as each color channel is 2 bytes
+	// ret = i2c_burst_read_dt(&dev_i2c, reg_dir, data, sizeof(data));
 
-	LOG_DBG("I2C rd burst (recv):\t0x%02x\t0x%02x", data[0], data[1]);
+	// LOG_DBG("I2C rd burst (recv):\t0x%02x\t0x%02x", data[0], data[1]);
 
 	while (1)
 	{

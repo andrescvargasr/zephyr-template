@@ -28,14 +28,11 @@
 #define SOFTWARE_VERSION "v0.3.0"
 #define SOFTWARE_VERSION_SEMVER 0x0030U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
 
-#define THD_STACKSIZE 512 // Should always be a power of two.
-#define THREAD0_PRIORITY 2
-#define THREAD1_PRIORITY 3
-#define WORQ_THREAD_STACK_SIZE  512
-#define WORKQ_PRIORITY   4
-
 #define THD_0
 #define THD_1
+#ifdef CONFIG_I2C /* CONFIG_I2C is directly from Zephyr */
+// #define THD_I2C
+#endif
 
 /**
  * @brief
@@ -51,8 +48,11 @@
 
 #ifdef CONFIG_DAC63204
 #define DAC63204 /* Define DAC part number */
-#include "Params_dac.h"
+#include "params_dac.h"
 #endif
+
+#define WORQ_THREAD_STACK_SIZE 512
+#define WORKQ_PRIORITY 4
 
 // Call a uart extern variable
 extern const struct device *uart;
