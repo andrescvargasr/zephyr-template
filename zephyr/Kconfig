@@ -1,0 +1,5 @@
+source "Kconfig.zephyr"
+
+config DAC63204
+  bool "Enable DAC63204 with I2C interface"
+  default n
