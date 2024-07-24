@@ -1,21 +1,21 @@
 /**
  * @file params.h
  * @author Andres C. Vargas R. (camilo.vargas@technaid.com gh: @andrescvargasr)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-07-22
- * 
- * 
+ *
+ *
  */
 
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#include <stdlib.h>		   // EXIT_[SUCCESS, FAILURE]
+#include <stdlib.h>        // EXIT_[SUCCESS, FAILURE]
 #include <zephyr/kernel.h> // k_msleep()
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-#include <zephyr/sys/printk.h>	// printk()
+#include <zephyr/sys/printk.h>  // printk()
 #include <zephyr/logging/log.h> // LOG_[ERR, WRN, INF, DBG]
 // GPIO
 #include <zephyr/drivers/gpio.h>
@@ -25,8 +25,8 @@
 // Two Wire Interface (I2C)
 #include <zephyr/drivers/i2c.h>
 
-#define SOFTWARE_VERSION "v0.3.0"
-#define SOFTWARE_VERSION_SEMVER 0x0030U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
+#define SOFTWARE_VERSION "v0.4.0"
+#define SOFTWARE_VERSION_SEMVER 0x0040U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
 
 #define THD_0
 #define THD_1
@@ -57,4 +57,4 @@
 // Call a uart extern variable
 extern const struct device *uart;
 
-#endif  // End PARAMS_H
+#endif // End PARAMS_H
