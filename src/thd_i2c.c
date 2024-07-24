@@ -1,11 +1,11 @@
 /**
  * @file thd_i2c.h
  * @author Andres C. Vargas R. (camilo.vargas@technaid.com gh: @andrescvargasr)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-07-24
- * 
- * 
+ *
+ *
  */
 
 #include "params.h"
@@ -33,13 +33,12 @@ LOG_MODULE_REGISTER(thd_i2c, LOG_LEVEL_ERR);
  * @return true If successful.
  * @return false If error.
  */
-bool init_i2c(void) {
-  bool ret = device_is_ready(dev_i2c.bus);
-  if (device_is_ready(dev_i2c.bus)) {
+bool init_i2c(void)
+{
+  if (!device_is_ready(dev_i2c.bus))
+  {
     LOG_ERR("I2C bus %s is not ready!", dev_i2c.bus->name);
     return false;
-  } else {
-    LOG_DBG("I2C device is ready!");
   }
   return true;
 }
@@ -52,7 +51,6 @@ bool init_i2c(void) {
  *
  * Instances of this may be replaced by write_read_i2c_pkt().
  *
- * @param dev_addr Address of the I2C device for reading.
  * @param start_addr Internal address from which the data is being read.
  * @param buf Memory pool that stores the retrieved data.
  * @param num_bytes Number of bytes being read.
@@ -61,16 +59,19 @@ bool init_i2c(void) {
  * @retval 0 If successful.
  * @retval -EIO General input / output error.
  */
-int read_i2c_pkt(const uint16_t dev_addr,
-                 const uint8_t start_addr,
-                 uint8_t* buf,
+int read_i2c_pkt(const uint8_t start_addr,
+                 uint8_t *buf,
                  uint32_t num_bytes,
-                 const uint8_t* name_register) {
+                 const uint8_t *name_register)
+{
   int ret = 0;
   ret = i2c_burst_read_dt(&dev_i2c, start_addr, buf, sizeof(num_bytes));
-  if (ret < 0) {
+  if (ret < 0)
+  {
     LOG_ERR("Could not write ADDR %i with I2C (err %i)", start_addr, ret);
-  } else {
+  }
+  else
+  {
     LOG_INF("I2C read in %s:", name_register);
     LOG_HEXDUMP_INF(buf, num_bytes, "");
   }
@@ -84,7 +85,6 @@ int read_i2c_pkt(const uint16_t dev_addr,
  * This routine writes multiple bytes to an internal address of an
  * I2C device synchronously.
  *
- * @param dev_addr Address of the I2C device for writing.
  * @param start_addr Internal address to which the data is being written.
  * @param buf Memory pool from which the data is transferred.
  * @param num_bytes Number of bytes being written.
@@ -93,16 +93,19 @@ int read_i2c_pkt(const uint16_t dev_addr,
  * @retval 0 If successful.
  * @retval -EIO General input / output error.
  */
-int write_i2c_pkt(const uint16_t dev_addr,
-                  const uint8_t start_addr,
-                  uint8_t* buf,
+int write_i2c_pkt(const uint8_t start_addr,
+                  uint8_t *buf,
                   uint32_t num_bytes,
-                  const uint8_t* name_register) {
+                  const uint8_t *name_register)
+{
   int ret = 0;
   ret = i2c_burst_write_dt(&dev_i2c, start_addr, buf, num_bytes);
-  if (ret < 0) {
+  if (ret < 0)
+  {
     LOG_ERR("Could not write ADDR %i with I2C (err %i)", start_addr, ret);
-  } else {
+  }
+  else
+  {
     LOG_INF("I2C write in %s:", name_register);
     LOG_HEXDUMP_INF(buf, num_bytes, "");
   }
@@ -117,8 +120,6 @@ int write_i2c_pkt(const uint16_t dev_addr,
  * it to me" transaction pair through a combined write-then-read bus
  * transaction.
  *
- * @param dev_addr Pointer to the device structure for an I2C controller
- * driver configured in controller mode.
  * @param start_addr Address of the I2C device
  * @param write_buf Pointer to the data to be written
  * @param num_write Number of bytes to write
@@ -130,24 +131,25 @@ int write_i2c_pkt(const uint16_t dev_addr,
  * @retval -EIO General input / output error.
  * @retval -EIO(x2) General input & output error.
  */
-int write_read_i2c_pkt(const uint16_t dev_addr,
-                       const uint8_t start_addr,
-                       uint8_t* write_buf,
+int write_read_i2c_pkt(const uint8_t start_addr,
+                       uint8_t *write_buf,
                        uint32_t num_write,
-                       uint8_t* read_buf,
+                       uint8_t *read_buf,
                        uint32_t num_read,
-                       const uint8_t* name_register) {
+                       const uint8_t *name_register)
+{
   int ret = 0;
 
   ret =
-      write_i2c_pkt(dev_addr, start_addr, write_buf, num_write, name_register);
+      write_i2c_pkt(start_addr, write_buf, num_write, name_register);
 
-  ret += read_i2c_pkt(dev_addr, start_addr, read_buf, num_read, name_register);
+  ret += read_i2c_pkt(start_addr, read_buf, num_read, name_register);
 
   return ret;
 }
 
-void thread_i2c(void) {
+void thread_i2c(void)
+{
   int ret;
   /****************************************************************************/
   /*                     I2C                                                  */
@@ -161,7 +163,7 @@ void thread_i2c(void) {
   LOG_DBG("I2C initialization: %s", i2c_ok ? "Ok" : "Error");
 
   // Read data
-  ret = read_i2c_pkt(DAC63204_ADDR, GENERAL_STATUS, who_am_i, sizeof(who_am_i),
+  ret = read_i2c_pkt(GENERAL_STATUS, who_am_i, sizeof(who_am_i),
                      "GENERAL_STATUS");
 
   // Send data
@@ -176,7 +178,7 @@ void thread_i2c(void) {
   data_i2c_pkt_lsdb = 0x60;
   data_i2c_pkt_sent[0] = data_i2c_pkt_msdb;
   data_i2c_pkt_sent[1] = data_i2c_pkt_lsdb;
-  ret = write_read_i2c_pkt(DAC63204_ADDR, DAC_1_MARGIN_HIGH, data_i2c_pkt_sent,
+  ret = write_read_i2c_pkt(DAC_1_MARGIN_HIGH, data_i2c_pkt_sent,
                            sizeof(data_i2c_pkt_sent), data_i2c_pkt_recv,
                            sizeof(data_i2c_pkt_recv), "DAC_1_MARGIN_HIGH");
 
@@ -185,7 +187,7 @@ void thread_i2c(void) {
   data_i2c_pkt_lsdb = 0xA0;
   data_i2c_pkt_sent[0] = data_i2c_pkt_msdb;
   data_i2c_pkt_sent[1] = data_i2c_pkt_lsdb;
-  ret = write_read_i2c_pkt(DAC63204_ADDR, DAC_1_MARGIN_LOW, data_i2c_pkt_sent,
+  ret = write_read_i2c_pkt(DAC_1_MARGIN_LOW, data_i2c_pkt_sent,
                            sizeof(data_i2c_pkt_sent), data_i2c_pkt_recv,
                            sizeof(data_i2c_pkt_recv), "DAC_1_MARGIN_LOW");
 
@@ -196,7 +198,7 @@ void thread_i2c(void) {
   // uint8_t dac_data_lsdb = 0x60;
   data_i2c_pkt_sent[0] = data_i2c_pkt_msdb;
   data_i2c_pkt_sent[1] = data_i2c_pkt_lsdb;
-  ret = write_read_i2c_pkt(DAC63204_ADDR, DAC_1_DATA, data_i2c_pkt_sent,
+  ret = write_read_i2c_pkt(DAC_1_DATA, data_i2c_pkt_sent,
                            sizeof(data_i2c_pkt_sent), data_i2c_pkt_recv,
                            sizeof(data_i2c_pkt_recv), "DAC_1_DATA");
 
@@ -205,11 +207,12 @@ void thread_i2c(void) {
   data_i2c_pkt_lsdb = 0xCF;
   data_i2c_pkt_sent[0] = data_i2c_pkt_msdb;
   data_i2c_pkt_sent[1] = data_i2c_pkt_lsdb;
-  write_read_i2c_pkt(DAC63204_ADDR, COMMON_CONFIG, data_i2c_pkt_sent,
+  write_read_i2c_pkt(COMMON_CONFIG, data_i2c_pkt_sent,
                      sizeof(data_i2c_pkt_sent), data_i2c_pkt_recv,
                      sizeof(data_i2c_pkt_recv), "COMMON_CONFIG");
 
-  for (;;) {
+  for (;;)
+  {
     static uint16_t offset = 0x000FU; /* First 4 bits don't care (12 bits DAC)*/
     static uint16_t data = 0x0000U;
 
@@ -218,7 +221,7 @@ void thread_i2c(void) {
     LOG_INF("Running a little test:");
     data_i2c_pkt_sent[0] = ((data >> 0x8U) & 0x00FF);
     data_i2c_pkt_sent[1] = (data & 0x00FF);
-    write_i2c_pkt(DAC63204_ADDR, DAC_1_DATA, data_i2c_pkt_sent,
+    write_i2c_pkt(DAC_1_DATA, data_i2c_pkt_sent,
                   sizeof(data_i2c_pkt_sent), "DAC Test");
     data += offset;
 #endif
