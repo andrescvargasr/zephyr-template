@@ -31,7 +31,7 @@
 #define THD_0
 #define THD_1
 #ifdef CONFIG_I2C /* CONFIG_I2C is directly from Zephyr */
-// #define THD_I2C
+#define THD_I2C
 #endif
 
 /**

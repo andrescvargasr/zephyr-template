@@ -13,7 +13,7 @@
 
 #ifndef SOFTWARE_VERSION /* 1st definition at Params, 2nd here */
 #define SOFTWARE_VERSION "v0.4.0"
-#define SOFTWARE_VERSION_SEMVER 0x0030U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
+#define SOFTWARE_VERSION_SEMVER 0x0040U /* MAJOR.MINOR.PATCH [0x0.M.m.P] */
 #endif
 
 /**
