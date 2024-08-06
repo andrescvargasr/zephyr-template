@@ -1,0 +1,9 @@
+# Copyright (c) 2024 Technaid SL
+# SPDX-License-Identifier: EUPL-1.2
+
+if BOARD_ZEPHYR_TEMPLATE_BOARD
+
+config BOARD
+    default "zephyr_template_board"
+
+endif # BOARD_ZEPHYR_TEMPLATE_BOARD

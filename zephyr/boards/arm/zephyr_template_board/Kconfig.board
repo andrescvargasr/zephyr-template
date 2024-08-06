@@ -1,0 +1,6 @@
+# Copyright (c) 2024 Technaid SL
+# SPDX-License-Identifier: EUPL-1.2
+
+config BOARD_ZEPHYR_TEMPLATE_BOARD
+    bool "Zephyr Template Board"
+    depends on SOC_STM32F103XB

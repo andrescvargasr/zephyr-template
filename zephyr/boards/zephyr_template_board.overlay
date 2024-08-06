@@ -1,0 +1,136 @@
+/ {
+    pwmleds: pwmleds {
+        compatible = "pwm-leds";
+        status = "okay";
+
+        green_pwm_led: green_pwm_led {
+            pwms = <&pwm1 1 PWM_MSEC(5) PWM_POLARITY_NORMAL>;
+        };
+    };
+
+    aliases {
+        led0 = &led;
+        pwm-led0 = &green_pwm_led;
+        uart0 = &usart1;
+        watchdog0 = &iwdg;
+    };
+};
+
+// Flash partition for MCUboot and storage partition
+&flash0 {
+    compatible = "st,stm32-nv-flash", "soc-nv-flash";
+
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <0x1>;
+        #size-cells = <0x1>;
+
+        /*
+         * MCUBoot partitions:
+         * https: //docs.zephyrproject.org/latest/services/storage/flash_map/flash_map.html#flash-map-api
+         */
+
+        /*
+         * Boot partition 32k + 8 k
+         */
+        boot_partition: partition@0 {
+            reg = <0x0 0xA000>;
+            /* read-only; */
+        };
+        /*
+         * Slot0 partition 32k + 8 k
+         */
+        slot0_partition: partition@a000 {
+            reg = <0xA000 0xA000>;
+        };
+        /*
+         * Slot1 partition 32k + 8 k
+         */
+        slot1_partition: partition@140000 {
+            reg = <0x14000 0xA0000>;
+        };
+        /*
+         * Storage partition 32k + 8 k
+         */
+        storage_partition: partition@1e000 {
+            reg = <0x1E000 0xA000>;
+        };
+        /*
+         * Scract partition is not defined
+        scratch_partition: partition@e0000 {
+            reg = <0xe0000 0x20000>;
+        };
+         */
+    };
+};
+
+&timers1 {
+    compatible = "st,stm32-timers";
+    status = "okay";
+    st,prescaler = <10000>;
+
+    pwm1: pwm {
+        compatible = "st,stm32-pwm";
+        status = "okay";
+        pinctrl-0 = <&tim1_ch1_pwm_out_pa8>;
+        pinctrl-names = "default";
+    };
+};
+
+&timers2 {
+    compatible = "st,stm32-timers";
+    status = "okay";
+    st,prescaler = <10000>;
+    pwm2: pwm {
+        compatible = "st,stm32-pwm";
+        status = "disabled";
+        pinctrl-0 = <&tim2_ch1_pwm_out_pa0>;
+        pinctrl-names = "default";
+    };
+    counter2: counter {
+        status = "okay";
+    };
+};
+
+// Need to define the AF2 for timer1
+&pinctrl {
+    /omit-if-no-ref/ tim1_ch1_pwm_out_pe9: tim1_ch1_pwm_out_pe9 {
+        pinmux = <STM32F1_PINMUX('E', 9, ALTERNATE, TIM1_REMAP2)>;
+    };
+};
+
+// USART over DMA
+&usart1 {
+    dmas = <&dma1 4 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH)>,
+           <&dma1 5 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH)>;
+    dma-names = "tx", "rx";
+};
+
+&dma1 {
+    status = "okay";
+};
+
+/*
+ * I2C configuration
+ * I2C1: scl_pb6 sda_pb7
+ */
+&i2c1 {
+    dac63204: dac63204@49 {
+        compatible = "i2c-device";
+        reg = <0x49>;
+        label = "DAC63204";
+    };
+};
+
+/**
+ * WDT configuration
+ * IWDG(max 40 kHz LSI): 26214.4 ms
+ * WWDG(max 36 MHz f_pclk1): 58.25 ms
+ */
+&iwdg {
+    status = "okay";
+};
+
+&wwdg {
+    status = "disabled";
+};

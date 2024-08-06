@@ -1,0 +1,16 @@
+identifier: zephyr_template_board
+name: Zephyr Template Board
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 20
+supported:
+  - i2c
+  - pwm
+  - spi
+  - adc
+  - gpio
+vendor: andrescvargasr
